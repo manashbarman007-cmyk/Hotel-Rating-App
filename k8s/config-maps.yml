@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-map
+  namespace: default
+data:
+  EUREKA_SERVER_URL: "http://eureka-0.eureka-service:8761/eureka"   # eureka-0 is the pod name of the StatefulSet
+                                                                  # and eureka-service is the headless service name
+  CONFIG_SERVER_URL: "http://config-server-service"
+  MYSQL_DB_HOST: "mysql-0.mysql-service"
+  MONGO_DB_URI: "mongodb://mongo-0.mongo-service:27017"
+  MYSQL_DB_PASSWORD: "root"
+  

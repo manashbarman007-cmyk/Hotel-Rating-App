@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eureka
+  namespace: default
+  labels:
+    app: eureka
+spec:
+  selector:
+    matchLabels:
+      app: eureka # has to match .spec.template.metadata.labels
+  serviceName: "eureka-service"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: eureka # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: eureka
+        image: manashbarman007/eureka-server:latest
+        ports:
+        - containerPort: 8761
+ 
+        
+---  # Triple "-" separates different documents within a single YML file
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: "eureka-service"
+spec:
+  clusterIP: None
+  selector:
+    app: eureka
+  ports:
+  - protocol: TCP
+    port: 8761 
+    targetPort: 8761 
+
+
+--- # Triple "-" separates different documents within a single YML file
+    # NodePort service to expose Eureka server externally
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-nodeport
+  namespace: default
+spec:
+  selector:
+    app: eureka 
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80 # default HTTP port
+    targetPort: 8761
+    nodePort: 30001 # The service can be accessed externally via http://<NodeIP>:30001

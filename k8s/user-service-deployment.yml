@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-app
+  namespace: default
+  labels:
+    app: user-app
+spec:
+  selector:
+    matchLabels:
+      app: user-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: user-app
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  user-app
+        image:  manashbarman007/user-service:latest
+        env:
+        - name: EUREKA_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: EUREKA_SERVER_URL
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: CONFIG_SERVER_URL
+        - name: MYSQL_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: MYSQL_DB_HOST # the value is mysql-0.mysql-service:3306
+        - name: MYSQL_DB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: MYSQL_DB_PASSWORD # the value is mysql-0.mysql-service:3306
+        ports:
+        - containerPort:  8081
+          name:  user-app
+
+          
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-app-service
+  namespace: default
+spec:
+  selector:
+    app: user-app
+  type: ClusterIP
+  ports:
+  - name: user-app-service
+    protocol: TCP
+    port: 8081
+    targetPort: 8081
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.
