@@ -81,7 +81,7 @@ After applying the Kubernetes manifests, check the NodePort for the API Gateway:
 
 ```bash
 kubectl get svc api-gateway
-
+```
 ---
 
 ## 👨‍💻 Author
