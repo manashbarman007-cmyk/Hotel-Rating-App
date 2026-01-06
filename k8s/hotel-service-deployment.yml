@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-app
+  namespace: default
+  labels:
+    app: hotel-app
+spec:
+  selector:
+    matchLabels:
+      app: hotel-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hotel-app
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  hotel-app
+        image:  manashbarman007/hotel-service:latest
+        env:
+        - name: EUREKA_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: EUREKA_SERVER_URL
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: CONFIG_SERVER_URL
+        - name: MONGO_DB_URI
+          valueFrom:
+            configMapKeyRef:
+              name: config-map
+              key: MONGO_DB_URI # the value is mongodb://mongo-0.mongo-service:27017
+        ports:
+        - containerPort:  8082
+          name:  hotel-app
+
+          
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-app-service
+  namespace: default
+spec:
+  selector:
+    app: hotel-app
+  type: ClusterIP
+  ports:
+  - name: hotel-app-service
+    protocol: TCP
+    port: 8082
+    targetPort: 8082
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.

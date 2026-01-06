@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: mysql # has to match .spec.template.metadata.labels
+  serviceName: "mysql-service"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: mysql # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mysql
+        image: mysql:8.0.43-debian
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root # sets the root password for MySQL
+        - name: MYSQL_DATABASE
+          value: microservices_db # creates a database named microservices_db
+        - name: MYSQL_USER
+          value: root # sets the username as root
+        ports:
+        - containerPort: 3306
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "manual"
+      resources:
+        requests:
+          storage: 200Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: default
+spec:
+  selector:
+    app: mysql
+  clusterIP: None
+  sessionAffinity: None
+  ports:
+  - name: mysql-service
+    protocol: TCP
+    port: 3306
+    targetPort: 3306
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: "C:/k8s/data-mysql"
+    type: DirectoryOrCreate  # Ensures that the directory is created if it does not exist

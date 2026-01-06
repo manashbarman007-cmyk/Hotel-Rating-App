@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server-service
+  namespace: default
+spec:
+  selector:
+    app: config-server
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8085
+    targetPort: 8085
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  config-server
+  namespace: default
+  labels:
+    app:  config-server
+spec:
+  selector:
+    matchLabels:
+      app: config-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app:  config-server
+    spec:
+      containers:
+        - name: config-server
+          image: manashbarman007/config-server:latest
+          env:
+            - name: EUREKA_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config-map
+                  key: EUREKA_SERVER_URL
+          ports:
+            - containerPort: 8085
+              name: config-server

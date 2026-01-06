@@ -1,0 +1,41 @@
+server:
+  port: 8083
+# MongoDB configuration
+spring:
+  data:
+    mongodb:
+      database: rating_microservicesDB
+      uri: ${MONGO_DB_URI:mongodb://localhost:27017}
+  application:
+    name: RATING-SERVICE
+#  config:
+#    import: optional:configserver:http://localhost:8085
+  cloud:
+    config:
+      enabled: false
+    kubernetes:
+      config:
+        enabled: true
+        name: config-map
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://integrator-9230174.okta.com/oauth2/default
+          
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  
+# Okta configurations for Rating Service
+okta:
+  oauth2:
+    audience: api://default
+    issuer: https://integrator-9230174.okta.com/oauth2/default	
+    

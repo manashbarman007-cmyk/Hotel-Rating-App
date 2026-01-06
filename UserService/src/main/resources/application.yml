@@ -1,0 +1,130 @@
+server:
+  port: 8081
+# MySQL configuration
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_DB_HOST:localhost}:3306/microservices_db
+    username: root
+    password: ${MYSQL_DB_PASSWORD:M@n@sh12345}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Options: none, update, create, create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect 				
+  application:
+    name: USER-SERVICE
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8085}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://integrator-9230174.okta.com/oauth2/default
+      client:
+        registration:
+          my-internal-client: # any custom name for the client
+            provider: okta
+            authorization-grant-type: client_credentials
+            scope: internal # we created this custom scope
+            redirect-uri: http://localhost:8084/login/oauth2/code/okta
+            client-id: 0oavmlvp1jG6VBHKu697
+            client-secret: 5CYWiNQQAui4QiuF7AN-_BWDG0DDSWwhUAteQkb9onWFxB1BCUpcJj50ItH6NnVu
+        provider:
+          okta:
+            issuer-uri: https://integrator-9230174.okta.com/oauth2/default
+  cloud:
+    kubernetes:
+      config:
+        enabled: true
+        name: config-map
+            
+
+# ACTUATOR config
+management:
+  endpoints:
+    web:
+      exposure:
+          include: health, retries # endpoints that should be included for actuator
+  health:
+    circuitbreakers:
+      enabled: true # to enable health check for circuit breaker
+  endpoint:
+    health:
+      show-details: ALWAYS # to show full health details
+      
+# RESILIENCE4J config
+resilience4j:
+  circuitbreaker:
+    instances:
+      ratingHotelBreaker1: # the name of the first circuit breaker that we have used
+        register-health-indicator: true # Registers this circuit breaker with Spring Boot Actuator
+        sliding-window-size: 10 # number of calls to evaluate failure rate from
+        sliding-window-type: COUNT_BASED # Uses a fixed number of calls (10) instead of a time-based.
+                                         # Each call updates the window
+        failure-rate-threshold: 50 # If 50% of call fails the circuit will trip 
+        automatic-transition-from-open-to-half-open-enabled: true # After the open state timeout, the circuit breaker 
+                                                                  # automatically moves to half-open to test if the service
+                                                                  # has recovered
+        wait-duration-in-open-state: 10s # time to stay open before testing again
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5 # minimum number of calls before evaluating failure rate
+        
+      ratingHotelBreaker2: # the name of the second circuit breaker that we have used
+        register-health-indicator: true # Registers this circuit breaker with Spring Boot Actuator
+        sliding-window-size: 10 # number of calls to evaluate failure rate from
+        sliding-window-type: COUNT_BASED # Uses a fixed number of calls (10) instead of a time-based.
+                                         # Each call updates the window
+        failure-rate-threshold: 50 # If 50% of call fails the circuit will trip 
+        automatic-transition-from-open-to-half-open-enabled: true # After the open state timeout, the circuit breaker 
+                                                                  # automatically moves to half-open to test if the service
+                                                                  # has recovered
+        wait-duration-in-open-state: 10s # time to stay open before testing again
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5 # minimum number of calls before evaluating failure rate
+  retry:
+    instances:
+      ratingHotelBreaker1:
+        max-attempts: 3
+        wait-duration: 1000ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        ignore-exceptions:
+          - com.project.user.service.main.exception.UserNotFoundException
+      ratingHotelBreaker2:
+        max-attempts: 3
+        wait-duration: 1000ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        ignore-exceptions:
+          - com.project.user.service.main.exception.UserNotFoundException
+  ratelimiter:
+    instances:
+      myRateLimiter1:
+        limit-for-period: 5  
+        limit-refresh-period: 10s # that is, 5 calls per 10 seconds are allowed
+        timeout-duration: 0
+      myRateLimiter2:
+        limit-for-period: 5  
+        limit-refresh-period: 10s # that is, 5 calls per 10 seconds are allowed
+        timeout-duration: 0
+        
+# Okta configurations for User Service
+okta:
+  oauth2:
+    audience: api://default
+    issuer: https://integrator-9230174.okta.com/oauth2/default
+    client-id: 0oavmlvp1jG6VBHKu697
+    client-secret: 5CYWiNQQAui4QiuF7AN-_BWDG0DDSWwhUAteQkb9onWFxB1BCUpcJj50ItH6NnVu
+    scopes: openid, profile, email, offline_access # offline_access: This keeps the user signed in to the app, even when you are not using it
+#eureka:
+#  instance:
+#    prefer-ip-address: true
+#    instance-id: ${spring.application.name}:${server.port}
+#  client:
+#    fetch-registry: true #true by default
+#    register-with-eureka: true #true by default
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
