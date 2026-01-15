@@ -75,5 +75,5 @@ spec:
     - ReadWriteOnce
   storageClassName: manual
   hostPath:
-    path: "C:/k8s/data-mysql"
+    path: /mnt/data/mysql
     type: DirectoryOrCreate  # Ensures that the directory is created if it does not exist
