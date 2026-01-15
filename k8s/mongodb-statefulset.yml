@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       app: mongo # has to match .spec.template.metadata.labels
-  serviceName: "mongo-service"
+  serviceName: mongo-service
   replicas: 1 # by default is 1
   template:
     metadata:
