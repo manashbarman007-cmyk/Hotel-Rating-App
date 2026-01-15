@@ -23,7 +23,7 @@ spec:
           name: mongo
         volumeMounts:
         - name: www
-          mountPath: /var/lib/mongo
+          mountPath: /data/db
   volumeClaimTemplates:
   - metadata:
       name: www
