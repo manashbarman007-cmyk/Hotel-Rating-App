@@ -27,7 +27,7 @@ spec:
           value: root # sets the username as root
         ports:
         - containerPort: 3306
-          name: web
+          name: mysql
         volumeMounts:
         - name: www
           mountPath: /var/lib/mysql
